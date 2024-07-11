@@ -41,15 +41,10 @@ namespace SimpleChatApp.Presentation.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Chat>> PostChat(Chat chatModel)
+        public async Task<ActionResult<Chat>> PostChat([FromBody] Chat chat)
         {
             try
             {
-                var chat = new Chat
-                {
-                    Name = chatModel.Name,
-                };
-
                 await _chatService.CreateChatAsync(chat);
                 return CreatedAtAction(nameof(GetChat), new { id = chat.Id }, chat);
             }
@@ -73,11 +68,15 @@ namespace SimpleChatApp.Presentation.Controllers
             }
         }
 
-        [HttpPost("send-message")]
-        public async Task<IActionResult> SendMessage(string user, string message)
+        [HttpGet("{chatId}/messages")]
+        public async Task<ActionResult<IEnumerable<Message>>> GetMessages(int chatId)
         {
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", user, message);
-            return Ok();
+            var chat = await _chatService.GetChatByIdAsync(chatId);
+            if (chat == null)
+            {
+                return NotFound();
+            }
+            return Ok(chat.Messages);
         }
     }
 }

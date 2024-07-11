@@ -1,10 +1,19 @@
-﻿namespace SimpleChatApp.DataAccess.Models
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace SimpleChatApp.DataAccess.Models
 {
     public class Chat
     {
+        [Key]
         public int Id { get; set; }
-        public int UserId { get; set; }
+
+        [Required]
         public string Name { get; set; }
-        public ICollection<Message> Messages { get; set; }
+
+        [Required]
+        public string UserId { get; set; }
+
+        public List<Message> Messages { get; set; }
     }
 }

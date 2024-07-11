@@ -1,13 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SimpleChatApp.DataAccess.Models;
-using System.Collections.Generic;
 
 namespace SimpleChatApp.DataAccess
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
 

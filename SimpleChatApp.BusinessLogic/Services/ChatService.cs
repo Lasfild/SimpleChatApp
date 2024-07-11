@@ -1,9 +1,9 @@
 ﻿using SimpleChatApp.DataAccess;
 using SimpleChatApp.DataAccess.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace SimpleChatApp.BusinessLogic.Services
 {
@@ -40,6 +40,14 @@ namespace SimpleChatApp.BusinessLogic.Services
                 _context.Chats.Remove(chat);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<List<Chat>> SearchChatsAsync(string searchTerm)
+        {
+            return await _context.Chats
+                .Include(c => c.Messages)
+                .Where(c => c.Name.Contains(searchTerm))
+                .ToListAsync();
         }
     }
 }
