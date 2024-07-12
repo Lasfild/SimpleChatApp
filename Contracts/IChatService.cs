@@ -9,7 +9,7 @@ namespace SimpleChatApp.BusinessLogic.Services
         Task<List<Chat>> GetAllChatsAsync();
         Task<Chat> GetChatByIdAsync(int id);
         Task CreateChatAsync(Chat chat);
-        Task DeleteChatAsync(int id, int userId);
+        Task DeleteChatAsync(int id, string userId);
         Task<List<Chat>> SearchChatsAsync(string searchTerm);
     }
 }

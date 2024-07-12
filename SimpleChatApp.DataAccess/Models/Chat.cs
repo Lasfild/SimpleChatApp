@@ -12,7 +12,7 @@ namespace SimpleChatApp.DataAccess.Models
         public string Name { get; set; }
 
         [Required]
-        public string UserId { get; set; }
+        public int UserId { get; set; }
 
         public List<Message> Messages { get; set; }
     }

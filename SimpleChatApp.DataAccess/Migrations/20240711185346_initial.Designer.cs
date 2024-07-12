@@ -11,8 +11,8 @@ using SimpleChatApp.DataAccess;
 namespace SimpleChatApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240711145204_chatmessage")]
-    partial class chatmessage
+    [Migration("20240711185346_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,9 +36,8 @@ namespace SimpleChatApp.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -60,9 +59,8 @@ namespace SimpleChatApp.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -73,13 +71,11 @@ namespace SimpleChatApp.DataAccess.Migrations
 
             modelBuilder.Entity("SimpleChatApp.DataAccess.Models.Message", b =>
                 {
-                    b.HasOne("SimpleChatApp.DataAccess.Models.Chat", "Chat")
+                    b.HasOne("SimpleChatApp.DataAccess.Models.Chat", null)
                         .WithMany("Messages")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Chat");
                 });
 
             modelBuilder.Entity("SimpleChatApp.DataAccess.Models.Chat", b =>

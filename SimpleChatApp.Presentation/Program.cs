@@ -1,29 +1,29 @@
 using Microsoft.EntityFrameworkCore;
 using SimpleChatApp.BusinessLogic.Services;
-using SimpleChatApp.DataAccess;
 using SimpleChatApp.DataAccess.Repositories;
-using SimpleChatApp.Presentation.Hubs;
-using System;
+using SimpleChatApp.DataAccess;
+using static SimpleChatApp.Presentation.Controllers.ChatsController;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Добавляем сервисы в контейнер.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(); // Добавляем поддержку SignalR
 
-// Add DbContext
+// Регистрируем сервисы
+builder.Services.AddSingleton<ChatHub>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddTransient<IChatEventNotifier, SignalRChatEventNotifier>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add repositories and services
-builder.Services.AddScoped<IChatRepository, ChatRepository>();
-builder.Services.AddScoped<IChatService, ChatService>();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Настраиваем конвейер обработки HTTP-запросов.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -31,10 +31,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
+// Маппим контроллеры и SignalR хаб.
 app.MapControllers();
-app.MapHub<ChatHub>("/hubs/chat");
+app.UseRouting();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<ChatHub>("/hubs/chat"); // Маппим хаб SignalR
+});
 
 app.Run();

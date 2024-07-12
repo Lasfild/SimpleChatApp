@@ -1,9 +1,9 @@
-﻿using SimpleChatApp.DataAccess.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace SimpleChatApp.BusinessLogic.Services
+﻿namespace SimpleChatApp.Contracts
 {
+    using SimpleChatApp.DataAccess.Models;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
     public interface IChatService
     {
         Task<List<Chat>> GetAllChatsAsync();

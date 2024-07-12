@@ -2,10 +2,6 @@
 using Microsoft.AspNetCore.SignalR;
 using SimpleChatApp.BusinessLogic.Services;
 using SimpleChatApp.DataAccess.Models;
-using SimpleChatApp.Presentation.Hubs;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace SimpleChatApp.Presentation.Controllers
 {
@@ -13,13 +9,26 @@ namespace SimpleChatApp.Presentation.Controllers
     [ApiController]
     public class ChatsController : ControllerBase
     {
-        private readonly IChatService _chatService;
-        private readonly IHubContext<ChatHub> _hubContext;
+        public class SignalRChatEventNotifier : IChatEventNotifier
+        {
+            private readonly IHubContext<ChatHub> _hubContext;
 
-        public ChatsController(IChatService chatService, IHubContext<ChatHub> hubContext)
+            public SignalRChatEventNotifier(IHubContext<ChatHub> hubContext)
+            {
+                _hubContext = hubContext;
+            }
+
+            public async Task NotifyChatDeletedAsync(int chatId)
+            {
+                await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ChatDeleted");
+            }
+        }
+
+        private readonly IChatService _chatService;
+
+        public ChatsController(IChatService chatService)
         {
             _chatService = chatService;
-            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -55,12 +64,20 @@ namespace SimpleChatApp.Presentation.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChat(int id, [FromBody] string userId)
+        public async Task<IActionResult> DeleteChat(int id, [FromBody] int userId)
         {
             try
             {
                 await _chatService.DeleteChatAsync(id, userId);
                 return NoContent();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -78,5 +95,6 @@ namespace SimpleChatApp.Presentation.Controllers
             }
             return Ok(chat.Messages);
         }
+
     }
 }
