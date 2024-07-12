@@ -1,9 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SimpleChatApp.DataAccess.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using SimpleChatApp.DataAccess.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace SimpleChatApp.DataAccess.Repositories
@@ -17,20 +13,25 @@ namespace SimpleChatApp.DataAccess.Repositories
             _context = context;
         }
 
-        public async Task<Chat> GetChatAsync(int id)
-        {
-            return await _context.Chats.FindAsync(id);
-        }
-
         public async Task<IEnumerable<Chat>> GetAllChatsAsync()
         {
-            return await _context.Chats.ToListAsync();
+            return await _context.Chats.Include(c => c.Messages).ToListAsync();
+        }
+
+        public async Task<Chat> GetChatAsync(int id)
+        {
+            return await _context.Chats.Include(c => c.Messages).FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task AddChatAsync(Chat chat)
         {
             _context.Chats.Add(chat);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<Chat> GetChatByIdAsync(int chatId)
+        {
+            return await _context.Chats.FindAsync(chatId);
         }
 
         public async Task DeleteChatAsync(int id)

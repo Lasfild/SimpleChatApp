@@ -59,7 +59,20 @@ namespace SimpleChatApp.Presentation.Controllers
         {
             try
             {
+                var chat = await _chatService.GetChatByIdAsync(id);
+                if (chat == null)
+                {
+                    return NotFound("Chat not found.");
+                }
+
+                if (chat.UserId != userId)
+                {
+                    return StatusCode(403, "There are no permissions to do the operation");
+                }
+
                 await _chatService.DeleteChatAsync(id, userId);
+                await _hubContext.Clients.Group(id.ToString()).SendAsync("ChatDeleted", id); // Уведомляем всех участников чата
+
                 return NoContent();
             }
             catch (Exception ex)
@@ -67,6 +80,7 @@ namespace SimpleChatApp.Presentation.Controllers
                 return BadRequest($"Failed to delete chat: {ex.Message}");
             }
         }
+
 
         [HttpPost("{id}/connect")]
         public async Task<IActionResult> ConnectToChat(int id, [FromBody] int userId)

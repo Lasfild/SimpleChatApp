@@ -1,7 +1,5 @@
-﻿using SimpleChatApp.DataAccess;
-using SimpleChatApp.DataAccess.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using SimpleChatApp.DataAccess.Models;
+using SimpleChatApp.DataAccess.Repositories;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,72 +8,54 @@ namespace SimpleChatApp.BusinessLogic.Services
 {
     public class ChatService : IChatService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IChatRepository _chatRepository;
+        private readonly IMessageRepository _messageRepository;
 
-        public ChatService(ApplicationDbContext context)
+        public ChatService(IChatRepository chatRepository, IMessageRepository messageRepository)
         {
-            _context = context;
+            _chatRepository = chatRepository ?? throw new ArgumentNullException(nameof(chatRepository));
+            _messageRepository = messageRepository ?? throw new ArgumentNullException(nameof(messageRepository));
         }
 
         public async Task<List<Chat>> GetAllChatsAsync()
         {
-            return await _context.Chats.Include(c => c.Messages).ToListAsync();
+            return (await _chatRepository.GetAllChatsAsync()).ToList();
         }
 
         public async Task<Chat> GetChatByIdAsync(int id)
         {
-            return await _context.Chats.Include(c => c.Messages).FirstOrDefaultAsync(c => c.Id == id);
+            return await _chatRepository.GetChatAsync(id);
         }
 
         public async Task CreateChatAsync(Chat chat)
         {
-            _context.Chats.Add(chat);
-            await _context.SaveChangesAsync();
+            if (chat == null)
+            {
+                throw new ArgumentNullException(nameof(chat), "Chat cannot be null.");
+            }
+
+            await _chatRepository.AddChatAsync(chat);
         }
 
         public async Task DeleteChatAsync(int id, int userId)
         {
-            var chat = await _context.Chats
-                .Include(c => c.Messages)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (chat == null)
+            var chat = await _chatRepository.GetChatAsync(id);
+            if (chat != null && chat.UserId == userId)
             {
-                throw new KeyNotFoundException("Чат не найден");
-            }
-
-            if (chat.UserId != userId)
-            {
-                throw new UnauthorizedAccessException("Нет прав на выполнение операции");
-            }
-
-            _context.Chats.Remove(chat);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task AddMessageAsync(Message message)
-        {
-            var chat = await _context.Chats
-                .Include(c => c.Messages)
-                .FirstOrDefaultAsync(c => c.Id == message.ChatId);
-
-            if (chat != null)
-            {
-                chat.Messages.Add(message);
-                await _context.SaveChangesAsync();
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Chat with id {message.ChatId} not found.");
+                await _chatRepository.DeleteChatAsync(id);
             }
         }
 
         public async Task<List<Chat>> SearchChatsAsync(string searchTerm)
         {
-            return await _context.Chats
-                .Include(c => c.Messages)
+            return (await _chatRepository.GetAllChatsAsync())
                 .Where(c => c.Name.Contains(searchTerm))
-                .ToListAsync();
+                .ToList();
+        }
+
+        public async Task AddMessageAsync(Message message) // Добавьте это
+        {
+            await _messageRepository.AddMessageAsync(message);
         }
     }
 }

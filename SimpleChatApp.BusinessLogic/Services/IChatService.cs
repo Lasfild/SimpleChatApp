@@ -1,4 +1,5 @@
 ﻿using SimpleChatApp.DataAccess.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SimpleChatApp.BusinessLogic.Services
@@ -9,7 +10,7 @@ namespace SimpleChatApp.BusinessLogic.Services
         Task<Chat> GetChatByIdAsync(int id);
         Task CreateChatAsync(Chat chat);
         Task DeleteChatAsync(int id, int userId);
-        Task AddMessageAsync(Message message);
         Task<List<Chat>> SearchChatsAsync(string searchTerm);
+        Task AddMessageAsync(Message message);
     }
 }
