@@ -15,7 +15,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleChatApp.BusinessLogic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleChatApp.DataAccess", "SimpleChatApp.DataAccess\SimpleChatApp.DataAccess.csproj", "{7B12CB41-9AB3-4D5C-8B73-3E4E06B93EDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleChatApp.Tests", "SimpleChatApp.Tests\SimpleChatApp.Tests.csproj", "{CB8ABE5A-8137-4CD5-93C4-85629C8DE91C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleChatApp.Tests", "SimpleChatApp.Tests\SimpleChatApp.Tests.csproj", "{CB8ABE5A-8137-4CD5-93C4-85629C8DE91C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{44BCC536-B1A2-4A83-A746-9135277F831A}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation.txt = Documentation.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
