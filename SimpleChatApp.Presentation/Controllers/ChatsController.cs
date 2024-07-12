@@ -71,7 +71,7 @@ namespace SimpleChatApp.Presentation.Controllers
                 }
 
                 await _chatService.DeleteChatAsync(id, userId);
-                await _hubContext.Clients.Group(id.ToString()).SendAsync("ChatDeleted", id); // Уведомляем всех участников чата
+                await _hubContext.Clients.Group(id.ToString()).SendAsync("ChatDeleted", id);
 
                 return NoContent();
             }
@@ -91,7 +91,7 @@ namespace SimpleChatApp.Presentation.Controllers
                 return NotFound();
             }
 
-            _connectedChatId = id; // Store ChatId in static variable
+            _connectedChatId = id;
 
             await _hubContext.Groups.AddToGroupAsync(userId.ToString(), id.ToString());
             await _hubContext.Clients.Group(id.ToString()).SendAsync("UserConnected", userId);
@@ -104,7 +104,6 @@ namespace SimpleChatApp.Presentation.Controllers
         {
             try
             {
-                // Получаем ChatId из статической переменной
                 var chatId = _connectedChatId;
 
                 if (chatId == null)
@@ -112,11 +111,9 @@ namespace SimpleChatApp.Presentation.Controllers
                     return BadRequest("Must connect to a chat before sending a message.");
                 }
 
-                // Добавляем сообщение с использованием сохраненного ChatId
                 message.ChatId = chatId.Value;
                 await _chatService.AddMessageAsync(message);
 
-                // Отправляем сообщение через SignalR Hub
                 await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ReceiveMessage", message.UserId, message.Content);
 
                 return Ok();

@@ -11,7 +11,6 @@ namespace SimpleChatApp.Tests.IntegrationTests
 
         public StatusEndpointTests()
         {
-            // Создание HttpClient без использования testhost.deps.json
             _client = new HttpClient();
         }
 

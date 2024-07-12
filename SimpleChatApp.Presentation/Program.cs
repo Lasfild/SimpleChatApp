@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSignalR(); // Добавляем поддержку SignalR
+builder.Services.AddSignalR();
 
 // Регистрируем сервисы
 builder.Services.AddSingleton<ChatHub>();

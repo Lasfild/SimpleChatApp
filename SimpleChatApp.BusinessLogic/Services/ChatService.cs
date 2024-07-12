@@ -53,7 +53,7 @@ namespace SimpleChatApp.BusinessLogic.Services
                 .ToList();
         }
 
-        public async Task AddMessageAsync(Message message) // Добавьте это
+        public async Task AddMessageAsync(Message message)
         {
             await _messageRepository.AddMessageAsync(message);
         }
