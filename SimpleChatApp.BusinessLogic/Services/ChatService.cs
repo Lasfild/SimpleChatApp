@@ -1,27 +1,20 @@
 ﻿using SimpleChatApp.DataAccess;
 using SimpleChatApp.DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.SignalR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace SimpleChatApp.BusinessLogic.Services
 {
-    public interface IChatEventNotifier
-    {
-        Task NotifyChatDeletedAsync(int chatId);
-    }
-
     public class ChatService : IChatService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IChatEventNotifier _chatEventNotifier;
 
-        public ChatService(ApplicationDbContext context, IChatEventNotifier chatEventNotifier)
+        public ChatService(ApplicationDbContext context)
         {
             _context = context;
-            _chatEventNotifier = chatEventNotifier;
         }
 
         public async Task<List<Chat>> GetAllChatsAsync()
@@ -58,9 +51,23 @@ namespace SimpleChatApp.BusinessLogic.Services
 
             _context.Chats.Remove(chat);
             await _context.SaveChangesAsync();
+        }
 
-            // Уведомление всех пользователей о закрытии чата
-            await _chatEventNotifier.NotifyChatDeletedAsync(id);
+        public async Task AddMessageAsync(Message message)
+        {
+            var chat = await _context.Chats
+                .Include(c => c.Messages)
+                .FirstOrDefaultAsync(c => c.Id == message.ChatId);
+
+            if (chat != null)
+            {
+                chat.Messages.Add(message);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException($"Chat with id {message.ChatId} not found.");
+            }
         }
 
         public async Task<List<Chat>> SearchChatsAsync(string searchTerm)

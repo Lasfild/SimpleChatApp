@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.SignalR;
 using SimpleChatApp.BusinessLogic.Services;
 using SimpleChatApp.DataAccess.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SimpleChatApp.Presentation.Controllers
 {
@@ -9,26 +12,14 @@ namespace SimpleChatApp.Presentation.Controllers
     [ApiController]
     public class ChatsController : ControllerBase
     {
-        public class SignalRChatEventNotifier : IChatEventNotifier
-        {
-            private readonly IHubContext<ChatHub> _hubContext;
-
-            public SignalRChatEventNotifier(IHubContext<ChatHub> hubContext)
-            {
-                _hubContext = hubContext;
-            }
-
-            public async Task NotifyChatDeletedAsync(int chatId)
-            {
-                await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ChatDeleted");
-            }
-        }
-
         private readonly IChatService _chatService;
+        private readonly IHubContext<ChatHub> _hubContext;
+        private static int? _connectedChatId; // Static variable to store ChatId
 
-        public ChatsController(IChatService chatService)
+        public ChatsController(IChatService chatService, IHubContext<ChatHub> hubContext)
         {
             _chatService = chatService;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -50,7 +41,7 @@ namespace SimpleChatApp.Presentation.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Chat>> PostChat([FromBody] Chat chat)
+        public async Task<ActionResult<Chat>> PostChat(Chat chat)
         {
             try
             {
@@ -71,30 +62,55 @@ namespace SimpleChatApp.Presentation.Controllers
                 await _chatService.DeleteChatAsync(id, userId);
                 return NoContent();
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
             catch (Exception ex)
             {
                 return BadRequest($"Failed to delete chat: {ex.Message}");
             }
         }
 
-        [HttpGet("{chatId}/messages")]
-        public async Task<ActionResult<IEnumerable<Message>>> GetMessages(int chatId)
+        [HttpPost("{id}/connect")]
+        public async Task<IActionResult> ConnectToChat(int id, [FromBody] int userId)
         {
-            var chat = await _chatService.GetChatByIdAsync(chatId);
+            var chat = await _chatService.GetChatByIdAsync(id);
             if (chat == null)
             {
                 return NotFound();
             }
-            return Ok(chat.Messages);
+
+            _connectedChatId = id; // Store ChatId in static variable
+
+            await _hubContext.Groups.AddToGroupAsync(userId.ToString(), id.ToString());
+            await _hubContext.Clients.Group(id.ToString()).SendAsync("UserConnected", userId);
+
+            return Ok();
         }
 
+        [HttpPost("send-message")]
+        public async Task<IActionResult> SendMessage([FromBody] Message message)
+        {
+            try
+            {
+                // Получаем ChatId из статической переменной
+                var chatId = _connectedChatId;
+
+                if (chatId == null)
+                {
+                    return BadRequest("Must connect to a chat before sending a message.");
+                }
+
+                // Добавляем сообщение с использованием сохраненного ChatId
+                message.ChatId = chatId.Value;
+                await _chatService.AddMessageAsync(message);
+
+                // Отправляем сообщение через SignalR Hub
+                await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ReceiveMessage", message.UserId, message.Content);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to send message: {ex.Message}");
+            }
+        }
     }
 }

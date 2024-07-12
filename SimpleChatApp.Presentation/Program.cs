@@ -1,8 +1,10 @@
-using Microsoft.EntityFrameworkCore;
-using SimpleChatApp.BusinessLogic.Services;
-using SimpleChatApp.DataAccess.Repositories;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SimpleChatApp.DataAccess;
-using static SimpleChatApp.Presentation.Controllers.ChatsController;
+using SimpleChatApp.BusinessLogic.Services;
+using Microsoft.EntityFrameworkCore;
+using SimpleChatApp.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,6 @@ builder.Services.AddSingleton<ChatHub>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-builder.Services.AddTransient<IChatEventNotifier, SignalRChatEventNotifier>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
